@@ -1,0 +1,11 @@
+# Only what differs from the ruff defaults. Everything else, including the Python version,
+# is inferred from pyproject.toml.
+[lint]
+select = ["E", "W", "F", "I", "D", "PL", "TRY", "RUF", "UP", "S", "T10"]
+ignore = ["D100", "D200", "D400", "UP007"]
+
+[lint.pydocstyle]
+convention = "numpy"
+
+[format]
+docstring-code-format = true

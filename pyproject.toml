@@ -1,0 +1,14 @@
+[project]
+name = "bookshelf-city-register"
+version = "0.1.0"
+description = "Canonical register of cities, built on GHS-UCDB R2024A, that city-level datasets key on."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "bookshelf[publish]==1.0.0b14",
+    "pandas>=2.2",
+]
+
+[tool.uv]
+exclude-newer = "3 days"
+exclude-newer-package = { bookshelf = false }

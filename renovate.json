@@ -1,0 +1,35 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices",
+    ":semanticCommits"
+  ],
+  "pre-commit": {
+    "enabled": true
+  },
+  "copier": {
+    "enabled": true
+  },
+  "packageRules": [
+    {
+      "description": "The reusable feedstock workflows are pinned to the Copier ref, so `copier update` moves them, not Renovate",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchDepNames": [
+        "climate-resource/copier-bookshelf-dataset"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "The CI caller installs the exact SDK, so `copier update` moves the pin, not Renovate",
+      "matchManagers": [
+        "pep621"
+      ],
+      "matchDepNames": [
+        "bookshelf"
+      ],
+      "enabled": false
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: v0.5.2
+_src_path: https://github.com/climate-resource/copier-bookshelf-dataset.git
+author: Jared Lewis
+author_email: jared.lewis@climate-resource.com
+dataset_description: Canonical register of cities, built on GHS-UCDB R2024A, that
+    city-level datasets key on.
+dataset_name: city-register
+dataset_name_human: City register
+extra_recipes: []
+project_url: https://github.com/climate-resource/bookshelf-city-register
