@@ -36,9 +36,14 @@ ruff-fixes:  ## fix the code using ruff
 	uvx ruff@0.15.22 check --fix
 	uvx ruff@0.15.22 format
 
-#.PHONY: test
-#test:  ## run the tests
-#	uv run pytest src tests -r a -v --doctest-modules --cov=src
+.PHONY: test
+test:  ## run the tests
+	uv run pytest
+
+.PHONY: mint
+mint:  ## append city_ids.csv rows for UCDB centres without one, from UCDB=<path to the zip>
+	@[ -n "$(UCDB)" ] || { echo "set UCDB to the UCDB zip the recipe pins" >&2; exit 1; }
+	uv run python scripts/mint.py --ucdb $(UCDB)
 
 .PHONY: virtual-environment
 virtual-environment:  ## update virtual environment, create a new one if it doesn't already exist

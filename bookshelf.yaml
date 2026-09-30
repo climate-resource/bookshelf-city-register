@@ -7,36 +7,59 @@ volume:
       email: jared.lewis@climate-resource.com
   keywords:
     - city-register
+    - cities
+    - urban-centres
+    - ghs-ucdb
+    - crosswalk
 
 # Defaults for every book
 # Any overrides for a specific book win
 defaults:
   title: "City register"
-  description: "Canonical register of cities, built on GHS-UCDB R2024A, that city-level datasets key on."
+  description: >-
+    One stable city_id for every GHS-UCDB urban centre,
+    with its centroid and core attributes,
+    and crosswalks from the city lists other providers publish.
   publisher: Climate Resource
   repository_url: https://github.com/climate-resource/bookshelf-city-register
+  methodology_url: https://github.com/climate-resource/bookshelf-city-register#id-rules
   visibility: public
   authors:
     - name: "Jared Lewis"
       email: jared.lewis@climate-resource.com
+  citation: >-
+    Mari Rivero, I., Melchiorri, M., Florio, P., Schiavina, M., Goch, K., Politis, P., Uhl, J. H.,
+    Pesaresi, M., Maffenini, L., Sulis, P., Crippa, M., Guizzardi, D., Pisoni, E., Belis, C.,
+    Jacome Felix Oom, D., Branco, A., Mwaniki, D., Kochulem, E., Githira, D., Carioli, A.,
+    Ehrlich, D., Tommasi, P., Kemper, T. and Dijkstra, L. (2024).
+    GHS-UCDB R2024A: GHS Urban Centre Database 2025.
+    European Commission, Joint Research Centre (JRC). doi:10.2905/1a338be6-7eaf-480c-9664-3a8ade88cbcd
+  intended_uses: A shared city key for joining city-level datasets.
+  limitations: >-
+    Centres follow the GHS-UCDB urban-centre definition, not administrative boundaries.
+    Some UCDB names are empty or non-Latin, so those ids carry the UCDB id instead of a name.
   resources:
-    # A resource type never moves between books, so it is stated once here.
-    raw:
-      type: tabular
+    ucdb:
+      type: binary
+      tags: [ghs-ucdb]
+      description: GHS-UCDB R2024A V1.1 as the JRC distributes it, a zip holding one gpkg.
+      doi: 10.2905/1a338be6-7eaf-480c-9664-3a8ade88cbcd
+      license: CC-BY-4.0
+      license_url: https://creativecommons.org/licenses/by/4.0/
 
 build:
   notebook: build.py
 
-# One entry per upstream version. `bookshelf record --version` picks one.
+# One entry per register release, named after the UCDB release it keys on.
 books:
-  - version: "v0.1.0"
+  - version: "v2024a.1.1"
     license: CC-BY-4.0
     license_url: https://creativecommons.org/licenses/by/4.0/
+    release_date: 2025-07-31
     description: >-
-      The scaffolded example book.
-      Replace it with the first real version of City register.
+      All 11,422 GHS-UCDB R2024A V1.1 urban centres,
+      with the 142 UrbClim city ids frozen from the riskatlas roster.
     resources:
-      # A checked-in input needs no sha256.
-      # Replace it with `uri:` and the `sha256:` the fetch is checked against.
-      raw:
-        path: inputs/raw.csv
+      ucdb:
+        uri: https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/GHS_UCDB_GLOBE_R2024A/GHS_UCDB_GLOBE_R2024A/V1-1/GHS_UCDB_GLOBE_R2024A_V1_1.zip
+        sha256: 7b644df16b0791f88c3db28ce56338b5e1725be02b6a79ca253849822db26b21
