@@ -18,7 +18,7 @@ defaults:
   title: "City register"
   description: >-
     One stable city_id for every GHS-UCDB urban centre,
-    with its centroid and core attributes,
+    with its centroid, core attributes and boundaries,
     and crosswalks from the city lists other providers publish.
   publisher: Climate Resource
   repository_url: https://github.com/climate-resource/bookshelf-city-register
@@ -57,7 +57,7 @@ books:
     license_url: https://creativecommons.org/licenses/by/4.0/
     release_date: 2025-07-31
     description: >-
-      All 11,422 GHS-UCDB R2024A V1.1 urban centres,
+      All 11,422 GHS-UCDB R2024A V1.1 urban centres and their 5 km buffers,
       with the 142 UrbClim city ids frozen from the riskatlas roster.
     resources:
       ucdb:

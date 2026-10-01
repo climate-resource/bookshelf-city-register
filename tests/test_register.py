@@ -5,7 +5,7 @@ import geopandas as gpd
 import pandas as pd
 import pyogrio
 import pytest
-from shapely.geometry import Point, box
+from shapely.geometry import Point, Polygon, box
 
 import register
 
@@ -246,3 +246,73 @@ def test_committed_data_is_consistent() -> None:
         "exact_normalized_name": 131,
         "reviewed_exact_alias": 11,
     }
+
+
+def boundaries_for(geometry: Polygon) -> gpd.GeoDataFrame:
+    geometries = gpd.GeoDataFrame({"ucdb_id": [1]}, geometry=[geometry], crs=MOLLWEIDE)
+    city_ids = pd.DataFrame([{"city_id": "alb-tirana", "ucdb_id": 1, "minted_from": "k15-roster"}])
+    return register.build_boundaries(geometries, city_ids)
+
+
+def test_boundaries_hold_the_polygon_and_its_5km_buffer() -> None:
+    square = box(0, 0, 10_000, 10_000)
+
+    boundaries = boundaries_for(square)
+
+    assert list(boundaries.columns) == register.BOUNDARY_COLUMNS
+    assert boundaries["kind"].tolist() == ["ucdb", "ucdb-buffer-5km"]
+    assert boundaries["repair"].tolist() == ["none", "none"]
+    assert boundaries.crs == "EPSG:4326"
+    core, ring = boundaries.to_crs(MOLLWEIDE).geometry
+    assert core.equals_exact(square, tolerance=1e-3)
+    assert ring.hausdorff_distance(square) == pytest.approx(5_000, rel=1e-6)
+    assert ring.area == pytest.approx(square.buffer(5_000).area, rel=1e-9)
+
+
+def test_a_self_intersecting_ring_is_repaired_without_changing_its_area() -> None:
+    # Two squares that touch at one corner, drawn as one ring that crosses itself there.
+    bowtie = Polygon([(0, 0), (10, 0), (10, 10), (20, 10), (20, 20), (10, 20), (10, 10), (0, 10)])
+
+    repaired, repair = register.repair_geometry(bowtie, 1)
+
+    assert repair == "make_valid"
+    assert repaired.is_valid
+    assert repaired.area == pytest.approx(bowtie.area, rel=1e-12)
+
+
+def test_a_repair_that_changes_the_area_is_refused() -> None:
+    # make_valid keeps both lobes of a figure eight, whose signed areas partly cancel before repair.
+    figure_eight = Polygon([(0, 0), (20, 20), (20, 0), (0, 10)])
+
+    with pytest.raises(register.RegisterError, match="UCDB 7 repair changes its area"):
+        register.repair_geometry(figure_eight, 7)
+
+
+def test_a_zero_area_figure_eight_is_refused() -> None:
+    with pytest.raises(register.RegisterError, match="changes its area by inf"):
+        register.repair_geometry(Polygon([(0, 0), (10, 10), (10, 0), (0, 10)]), 7)
+
+
+def test_a_repair_that_is_not_polygonal_is_refused() -> None:
+    spike = Polygon([(0, 0), (10, 0), (0, 0)])
+
+    with pytest.raises(register.RegisterError, match="UCDB 7 repairs to a"):
+        register.repair_geometry(spike, 7)
+
+
+def test_build_boundaries_from_the_ucdb_zip(ucdb_zip: Path, iso3: pd.DataFrame) -> None:
+    ucdb = register.read_ucdb(ucdb_zip)
+    city_ids = register.mint_ids(register.attach_iso3(ucdb, iso3), empty_ids())
+
+    boundaries = register.build_boundaries(register.read_ucdb_geometries(ucdb_zip), city_ids)
+
+    assert len(boundaries) == 2 * len(CENTRES)
+    assert set(boundaries["city_id"]) == set(city_ids["city_id"])
+    assert boundaries.geometry.is_valid.all()
+
+
+def test_boundaries_need_a_metric_crs() -> None:
+    geometries = gpd.GeoDataFrame({"ucdb_id": [1]}, geometry=[box(0, 0, 1, 1)], crs="EPSG:4326")
+
+    with pytest.raises(register.RegisterError, match="projected CRS"):
+        register.build_boundaries(geometries, empty_ids())

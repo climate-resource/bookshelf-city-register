@@ -35,6 +35,19 @@ The book is `city-register`, public and CC-BY-4.0.
 Its columns are `city_id, provider, provider_id, provider_name, match_type, alias_rationale`.
 The first provider is `urbclim`, the 142 VITO UrbClim cities served in the climate risk atlas.
 
+`boundaries` is a GeoParquet file in EPSG:4326 with two rows per city.
+Its columns are `city_id, ucdb_id, kind, repair, geometry`.
+
+- `kind` is `ucdb` for the UCDB urban centre polygon,
+  or `ucdb-buffer-5km` for that polygon buffered by 5 km as a rural comparison ring.
+- `repair` is `make_valid` where the UCDB ring self-intersects and shapely's `make_valid` fixed it,
+  otherwise `none`.
+  The build refuses a repair that is not polygonal or changes the area by more than 1e-9 as a fraction.
+- Repair and buffer run in World Mollweide with shapely defaults, before reprojecting to WGS84.
+  This matches the riskatlas K16 Z81 source scope, and `scripts/parity_urbclim.py` checks it.
+
+geopandas writes the file, so the locked geopandas, shapely and pyarrow versions fix its bytes.
+
 ## Id rules
 
 Ids are frozen in `data/city_ids.csv`.
@@ -78,6 +91,11 @@ UCDB ids are not stable across releases, so a new release needs its centres matc
 3. Run `make mint UCDB=<path to the new zip>` to mint ids for centres that are new.
 4. Decide what happens to centres the release drops before the build will pass,
    because a retired id must never be reused.
+
+## Changelog
+
+- `v2024a.1.1`, second edition: adds `boundaries`.
+- `v2024a.1.1`, first edition: `cities` and `crosswalks`.
 
 ## Getting started
 

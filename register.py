@@ -6,14 +6,21 @@ import re
 import unicodedata
 from pathlib import Path
 
+import geopandas as gpd
 import pandas as pd
 import pyogrio
 from pyproj import Transformer
+from shapely import make_valid
+from shapely.geometry.base import BaseGeometry
 
 GPKG_MEMBER = "GHS_UCDB_GLOBE_R2024A.gpkg"
 GENERAL_LAYER = "GHS_UCDB_THEME_GENERAL_CHARACTERISTICS_GLOBE_R2024A"
 CENTROID_LAYER = "UC_centroids"
 ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9._-]{0,199}$")
+
+# Both match the riskatlas K16 Z81 source scope, so SUHI stays at parity with the served stores.
+BUFFER_METRES = 5_000.0
+REPAIR_AREA_TOLERANCE = 1.0e-9
 
 DATA = Path(__file__).parent / "data"
 CITY_IDS = DATA / "city_ids.csv"
@@ -66,6 +73,9 @@ CITY_COLUMNS = [
     "last_year",
     "capital",
 ]
+
+BOUNDARY_COLUMNS = ["city_id", "ucdb_id", "kind", "repair", "geometry"]
+BOUNDARY_KINDS = ("ucdb", "ucdb-buffer-5km")
 
 
 class RegisterError(ValueError):
@@ -251,3 +261,60 @@ def build_cities(
         raise RegisterError("a centroid falls outside WGS84 bounds")
     cities["capital"] = cities["capital"].astype(bool)
     return cities[CITY_COLUMNS].sort_values("ucdb_id").reset_index(drop=True)
+
+
+def read_ucdb_geometries(archive: Path) -> gpd.GeoDataFrame:
+    """Return `ucdb_id` and the urban centre polygon in the UCDB's own CRS, World Mollweide."""
+    general = clean_ucdb_columns(pyogrio.read_dataframe(gpkg_path(archive), layer=GENERAL_LAYER))
+    return general.rename(columns={"ID_UC_G0": "ucdb_id"})[["ucdb_id", "geometry"]]
+
+
+def repair_geometry(geometry: BaseGeometry, ucdb_id: int) -> tuple[BaseGeometry, str]:
+    """
+    Return a valid polygon and the repair applied, `none` or `make_valid`.
+
+    Refuses a repair that is not polygonal or changes the area by more than
+    `REPAIR_AREA_TOLERANCE` as a fraction.
+    """
+    if geometry.is_valid:
+        return geometry, "none"
+    repaired = make_valid(geometry)
+    if repaired.is_empty or repaired.geom_type not in {"Polygon", "MultiPolygon"}:
+        raise RegisterError(f"UCDB {ucdb_id} repairs to a {repaired.geom_type}")
+    delta = abs(repaired.area - geometry.area) / geometry.area if geometry.area else float("inf")
+    if not repaired.is_valid or delta > REPAIR_AREA_TOLERANCE:
+        raise RegisterError(f"UCDB {ucdb_id} repair changes its area by {delta:.3g}")
+    return repaired, "make_valid"
+
+
+def build_boundaries(geometries: gpd.GeoDataFrame, city_ids: pd.DataFrame) -> gpd.GeoDataFrame:
+    """
+    Return two EPSG:4326 rows per city, its UCDB polygon and that polygon buffered by 5 km.
+
+    `geometries` is `read_ucdb_geometries` output, in a metric CRS.
+    """
+    if not geometries.crs or not geometries.crs.is_projected:
+        raise RegisterError("UCDB geometries must be in a projected CRS to buffer in metres")
+    check_city_ids(city_ids, geometries["ucdb_id"])
+    frame = city_ids[["city_id", "ucdb_id"]].merge(
+        geometries, on="ucdb_id", how="inner", validate="one_to_one"
+    )
+    repaired, repairs = zip(
+        *(
+            repair_geometry(geometry, ucdb_id)
+            for geometry, ucdb_id in zip(frame["geometry"], frame["ucdb_id"], strict=True)
+        ),
+        strict=True,
+    )
+    core = gpd.GeoDataFrame(
+        frame[["city_id", "ucdb_id"]].assign(kind=BOUNDARY_KINDS[0], repair=list(repairs)),
+        geometry=list(repaired),
+        crs=geometries.crs,
+    )
+    ring = core.assign(kind=BOUNDARY_KINDS[1], geometry=core.geometry.buffer(BUFFER_METRES))
+    boundaries = pd.concat([core, ring], ignore_index=True).to_crs("EPSG:4326")
+    if boundaries.geometry.is_empty.any() or not boundaries.geometry.is_valid.all():
+        raise RegisterError("a boundary is empty or invalid after reprojection")
+    if not boundaries.geom_type.isin(["Polygon", "MultiPolygon"]).all():
+        raise RegisterError("a boundary is not a polygon")
+    return boundaries[BOUNDARY_COLUMNS].sort_values(["ucdb_id", "kind"]).reset_index(drop=True)

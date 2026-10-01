@@ -118,34 +118,34 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "bookshelf", extra = ["publish"] },
+    { name = "geopandas" },
     { name = "pandas" },
     { name = "pyarrow" },
     { name = "pycountry" },
     { name = "pyogrio" },
     { name = "pyproj" },
+    { name = "shapely" },
 ]
 
 [package.dev-dependencies]
 dev = [
-    { name = "geopandas" },
     { name = "pytest" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "bookshelf", extras = ["publish"], specifier = "==1.0.0b14" },
+    { name = "geopandas", specifier = ">=1.1.4" },
     { name = "pandas", specifier = ">=2.2" },
     { name = "pyarrow", specifier = ">=25.0.1" },
     { name = "pycountry", specifier = ">=26.2.16" },
     { name = "pyogrio", specifier = ">=0.13.0" },
     { name = "pyproj", specifier = ">=3.8.0" },
+    { name = "shapely", specifier = ">=2.1.2" },
 ]
 
 [package.metadata.requires-dev]
-dev = [
-    { name = "geopandas", specifier = ">=1.1.4" },
-    { name = "pytest", specifier = ">=9.1.1" },
-]
+dev = [{ name = "pytest", specifier = ">=9.1.1" }]
 
 [[package]]
 name = "certifi"
