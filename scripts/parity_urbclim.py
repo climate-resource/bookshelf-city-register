@@ -61,17 +61,20 @@ def main() -> None:
         source = "K16 Z81 rules recomputed from the UCDB zip"
 
     boundaries = gpd.read_parquet(args.boundaries)
-    ours = boundaries.loc[
-        (boundaries["kind"] == "ucdb-buffer-5km") & boundaries["city_id"].isin(roster["city_id"])
-    ]
-    paired = ours[["city_id", "geometry"]].merge(
-        reference.rename_geometry("reference").to_crs(ours.crs),
-        on="city_id",
-        how="outer",
-        validate="one_to_one",
-        indicator=True,
+    ours = boundaries.loc[boundaries["kind"] == "ucdb-buffer-5km", ["city_id", "geometry"]]
+    paired = (
+        roster[["city_id"]]
+        .merge(ours, on="city_id", how="left", validate="one_to_one")
+        .merge(
+            reference.rename_geometry("reference").to_crs(ours.crs),
+            on="city_id",
+            how="left",
+            validate="one_to_one",
+        )
     )
-    unpaired = paired.loc[paired["_merge"] != "both", "city_id"].tolist()
+    missing = paired["geometry"].isna() | paired["reference"].isna()
+    unpaired = paired.loc[missing, "city_id"].tolist()
+    paired = paired.loc[~missing]
 
     mollweide = "ESRI:54009"
     left = gpd.GeoSeries(paired["geometry"], crs=ours.crs).to_crs(mollweide)
@@ -80,12 +83,14 @@ def main() -> None:
     failed = paired.loc[~(paired["fraction"] < TOLERANCE), ["city_id", "fraction"]]
 
     print(f"reference: {source}")
-    print(f"cities compared: {len(paired) - len(unpaired)} of {len(roster)}")
+    print(f"cities compared: {len(paired)} of {len(roster)}")
     print(f"max symmetric-difference fraction: {paired['fraction'].max():.3e}")
     print(f"tolerance: {TOLERANCE:.0e}")
-    if unpaired or not failed.empty:
-        print(f"unpaired: {unpaired}")
+    if unpaired:
+        print(f"missing from an input: {unpaired}")
+    if not failed.empty:
         print(failed.to_string(index=False))
+    if unpaired or not failed.empty:
         sys.exit(1)
     print("parity: pass")
 
