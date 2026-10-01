@@ -8,6 +8,9 @@
 # This notebook joins them to the UCDB attributes and refuses anything that breaks an id rule.
 
 # %%
+import tempfile
+from pathlib import Path
+
 import bookshelf
 
 import register
@@ -41,6 +44,14 @@ crosswalks = crosswalks.sort_values(["provider", "city_id"]).reset_index(drop=Tr
 cities.head()
 
 # %% [markdown]
+# Each city's UCDB polygon, and the polygon buffered by 5 km as its rural comparison ring.
+# Both are repaired and buffered in Mollweide, then reprojected to WGS84.
+
+# %%
+boundaries = register.build_boundaries(register.read_ucdb_geometries(source.path), city_ids)
+boundaries["repair"].value_counts()
+
+# %% [markdown]
 # # Publish
 #
 # `cities` takes the book's UCDB citation. The UrbClim crosswalk also credits the VITO city list.
@@ -69,5 +80,19 @@ build.book.write(
     description="Provider city ids mapped to city_id, with how each match was made.",
     citation=URBCLIM_CITATION,
     doi="10.5281/zenodo.13361538",
+)
+# Written by geopandas rather than the SDK, so the locked geopandas version fixes the bytes.
+boundaries_path = Path(tempfile.mkdtemp()) / "boundaries.parquet"
+boundaries.to_parquet(boundaries_path, index=False)
+build.book.write(
+    "boundaries",
+    boundaries_path,
+    type="geospatial",
+    used=[source],
+    description=(
+        "Two WGS84 polygons per city: the GHS-UCDB R2024A urban centre (kind ucdb) "
+        "and that centre buffered by 5 km in World Mollweide (kind ucdb-buffer-5km)."
+    ),
+    doi="10.2905/1a338be6-7eaf-480c-9664-3a8ade88cbcd",
 )
 build.book.publish()
