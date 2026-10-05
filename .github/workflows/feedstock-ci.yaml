@@ -17,12 +17,13 @@ permissions:
 jobs:
   bookshelf:
     name: Bookshelf
-    uses: climate-resource/copier-bookshelf-dataset/.github/workflows/feedstock-ci.yaml@v0.5.2
+    uses: climate-resource/copier-bookshelf-dataset/.github/workflows/feedstock-ci.yaml@v0.6.0
     with:
       recipes: >-
         bookshelf.yaml
       main-ref: main
       api-base-url: ${{ vars.BOOKSHELF_API_URL }}
+<<<<<<< before updating
       sdk-version: "1.0.0b14"
 
   tests:
@@ -35,3 +36,6 @@ jobs:
       - uses: astral-sh/setup-uv@v8.3.2
       - run: uv sync --locked
       - run: uv run pytest -q
+=======
+      sdk-version: "1.0.0"
+>>>>>>> after updating
