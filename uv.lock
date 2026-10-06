@@ -89,9 +89,10 @@ css = [
 
 [[package]]
 name = "bookshelf"
-version = "1.0.0b14"
+version = "1.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "filelock" },
     { name = "httpx" },
     { name = "pandas" },
     { name = "platformdirs" },
@@ -100,9 +101,9 @@ dependencies = [
     { name = "pyyaml" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f2/75/7840c7936dbe0f65708560c282f08ab650e0b26328287496e2e1c22e5aba/bookshelf-1.0.0b14.tar.gz", hash = "sha256:c767e54ff09216a54928067286b0cfd9daa0ffa8c9697bbd66c4e7bf97f67b7f", size = 723245, upload-time = "2026-09-23T01:39:33.817Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/51/1c/dfe9672e5dd17ba7725dd66224a9e65792e0d1d0a2a0432766a6ef5b0ef8/bookshelf-1.0.0.tar.gz", hash = "sha256:aedf05e581291af07ac3ca6d510eb5489dfebdd9dff87aeac3370660e870f232", size = 267142, upload-time = "2026-10-05T13:14:27.363Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/69/cd/1776916f6f2cd2edc3d66054e022a3ec5c6796d3a76c33fc99d88ad4e78f/bookshelf-1.0.0b14-py3-none-any.whl", hash = "sha256:db221cd347b93cbab95a81e81e0a559ddbae914d5275af0b3bd3c4e28f5b8d44", size = 211954, upload-time = "2026-09-23T01:39:32.536Z" },
+    { url = "https://files.pythonhosted.org/packages/b4/2a/c3824561de537bc1cbb306dd80223654305d3c651e9598278069bdc7e78c/bookshelf-1.0.0-py3-none-any.whl", hash = "sha256:9f2f842cad57cc0f70c235fe2a846875526f0896ff43d430933d7b4449c925bb", size = 247457, upload-time = "2026-10-05T13:14:28.782Z" },
 ]
 
 [package.optional-dependencies]
@@ -134,7 +135,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "bookshelf", extras = ["publish"], specifier = "==1.0.0b14" },
+    { name = "bookshelf", extras = ["publish"], specifier = "==1.0.0" },
     { name = "geopandas", specifier = ">=1.1.4" },
     { name = "pandas", specifier = ">=2.2" },
     { name = "pyarrow", specifier = ">=25.0.1" },
@@ -266,6 +267,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/33/a4/9473c7c3b87009d9c1d74034e4a0f6a35ff0d42dd0f9866d0c3ec4e9217b/fastjsonschema-2.22.2.tar.gz", hash = "sha256:72064e12356a7d6ef02165be2946b9abadbdf238536e07eb587e3dbaa33099cf", size = 385171, upload-time = "2026-08-15T19:47:08.853Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/49/82/2755c7c982086f00d4dab85bc120ec35045a9fc2191893a6ce79afe94443/fastjsonschema-2.22.2-py3-none-any.whl", hash = "sha256:0fb3915616adac85ccfdd737d26be1089845d2019819505b42d39888458f74d4", size = 27413, upload-time = "2026-08-15T19:47:04.406Z" },
+]
+
+[[package]]
+name = "filelock"
+version = "4.0.9"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/70/51/2bc9e529f154fad99b6cd0073e609291eb32fd23581b32362d33d164d316/filelock-4.0.9.tar.gz", hash = "sha256:635e7d67fa92654eed444e75e9ca18426d34e77ad9c469bf4373f75a932f7b22", size = 251200, upload-time = "2026-10-01T23:09:14.029Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/01/4f/83454fafd628e1e7e1726d74e44fb2332be5969d04c6182ca1fecb6c580e/filelock-4.0.9-py3-none-any.whl", hash = "sha256:9287fd61b99a806e5202be29a83034c0808a1b9830e820537c2f5773981f7eeb", size = 110368, upload-time = "2026-10-01T23:09:12.391Z" },
 ]
 
 [[package]]

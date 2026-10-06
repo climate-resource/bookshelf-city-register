@@ -1,5 +1,7 @@
 # Build products
 bundle/
+.bundle-record-*/
+.bundle-backup-*/
 
 # Python
 .venv/
