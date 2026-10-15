@@ -5,12 +5,8 @@ description = "Canonical register of cities, built on GHS-UCDB R2024A, that city
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-<<<<<<< before updating
-    "bookshelf[publish]==1.0.0",
-    "geopandas>=1.1.4",
-=======
     "bookshelf[publish]>=1.0,<2",
->>>>>>> after updating
+    "geopandas>=1.1.4",
     "pandas>=2.2",
     "pyarrow>=25.0.1",
     "pycountry>=26.2.16",
